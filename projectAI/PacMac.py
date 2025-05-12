@@ -17,6 +17,8 @@ class Pac(pygame.sprite.Sprite):
         self.initial_y = (col * CHAR_SIZE)
         self.abs_x = self.initial_x
         self.abs_y = self.initial_y
+        self.spawn_row = row
+        self.spawn_col = col
         # pac animation
         self._import_character_assets()
         self.frame_index = 0
@@ -42,14 +44,14 @@ class Pac(pygame.sprite.Sprite):
 
     def move_to_start_pos(self):
         """Di chuyển Pac-Man về vị trí ban đầu"""
-        self.rect.x = self.abs_x
-        self.rect.y = self.abs_y
+        self.rect.x = self.spawn_row * CHAR_SIZE
+        self.rect.y = self.spawn_col * CHAR_SIZE
         self.previous_position = (self.rect.x, self.rect.y)
         self.position = (self.rect.x, self.rect.y)  # Cập nhật lại tọa độ thực tế
         self.log_position()
 
     def _import_character_assets(self):
-        character_path = "projectAI/assets/pac/"
+        character_path = "D:/projectAI/assets/pac/"
         self.animations = {
             "up": [],
             "down": [],

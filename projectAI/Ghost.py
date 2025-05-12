@@ -35,7 +35,7 @@ class Ghost(pygame.sprite.Sprite):
             print(f"Unknown color for Ghost: {self.color}")
         
         # Đường dẫn hình ảnh dựa trên tên màu
-        self.img_path = f'projectAI/assets/ghosts/{color}/'
+        self.img_path = f'D:/projectAI/assets/ghosts/{color}/'
         
         # Load và cache các hình ảnh một lần
         self.images = {
@@ -73,6 +73,7 @@ class Ghost(pygame.sprite.Sprite):
         # Vị trí spawn
         self.spawn_row = row
         self.spawn_col = col
+        self.rect.x, self.rect.y = self.grid_to_pixel(row, col)
     
     def _animate(self):
         """Cập nhật hình ảnh dựa trên hướng di chuyển"""
@@ -92,6 +93,9 @@ class Ghost(pygame.sprite.Sprite):
             path = bfs_search(map_data, start, destination)
         elif self.color_name == "Pink":
             path = a_star_search(map_data, start, destination)
+        elif self.color_name == "Orange":
+            # Orange ghost dùng thuật toán Partially Observable
+            path = partially_observable_search(map_data, start, destination, vision_radius=5)
         else:
             path = bfs_search(map_data, start, destination)  # Mặc định
             

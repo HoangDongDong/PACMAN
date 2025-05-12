@@ -9,7 +9,7 @@ pygame.display.set_caption("Pacman Game")
 
 # Load images
 try:
-    pacman_image = pygame.image.load('projectAI/assets/picture/PacMan.png')
+    pacman_image = pygame.image.load('D:/projectAI/assets/picture/PacMan.png')
     # Scale image to 80% of window width
     new_width = int(WIDTH * 0.8)
     image_scale = new_width / pacman_image.get_width()
@@ -17,7 +17,7 @@ try:
     pacman_image = pygame.transform.scale(pacman_image, (new_width, new_height))
 
     # Load and scale logo
-    logo_image = pygame.image.load('projectAI/assets/picture/Pac-Man-Logo-1a.png')
+    logo_image = pygame.image.load('D:/projectAI/assets/picture/Pac-Man-Logo-1a.png')
     logo_width = 500  # Set desired width for logo
     logo_scale = logo_width / logo_image.get_width()
     logo_height = int(logo_image.get_height() * logo_scale)
@@ -53,7 +53,7 @@ def draw_button(sc, text, x, y, width, height, color = BLUE):
 def load_scores():
     scores = []
     try:
-        with open('projectAI/assets/scores.txt', 'r', encoding='utf-8') as file:
+        with open('D:/projectAI/assets/scores.txt', 'r', encoding='utf-8') as file:
             for line in file:
                 name, score = line.strip().split(',')
                 scores.append((name, int(score)))
@@ -62,7 +62,7 @@ def load_scores():
     return sorted(scores, key=lambda x: x[1], reverse=True)
 
 def save_score(name, score):
-    with open('projectAI/assets/scores.txt', 'a', encoding='utf-8') as file:
+    with open('D:/projectAI/assets/scores.txt', 'a', encoding='utf-8') as file:
         file.write(f"{name},{score}\n")
 
 def draw_ranking(sc):
@@ -123,13 +123,12 @@ def main():
                             running = False
                             
         elif game_state == GAME:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    running = False
+            world.update()
             if world.game_over:
                 game_state = GAME_OVER
-            else:
-                for event in pygame.event.get():
-                    if event.type == pygame.QUIT:
-                        running = False
-                world.update()
                 
         elif game_state == RANKING:
             draw_ranking(screen)

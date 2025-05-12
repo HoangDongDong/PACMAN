@@ -44,7 +44,7 @@ class Display:
         self.text_color = pygame.Color("crimson")
 
     def show_life(self, life):
-        img_path = "projectAI/assets/life/life.png"
+        img_path = "D:/projectAI/assets/life/life.png"
         life_image = pygame.image.load(img_path)
         life_image = pygame.transform.scale(life_image, (CHAR_SIZE, CHAR_SIZE))
         life_x = CHAR_SIZE // 2
@@ -158,6 +158,9 @@ class World:
             if char == "s"
         ]
         self._schedule_ghosts()
+        self.player.sprite.move_to_start_pos()
+        for ghost in self.ghosts:
+            ghost.move_to_start_pos()
 
     def restart_level(self):
         self.game_level = 1
@@ -171,6 +174,8 @@ class World:
         self._generate_world()
         self._schedule_ghosts()
         self.player.sprite.move_to_start_pos()
+        for ghost in self.ghosts:
+            ghost.move_to_start_pos()
         self.player.sprite.direction = (0, 0)
         self.player.sprite.status = "idle"
 
@@ -178,6 +183,8 @@ class World:
         self.ghosts.empty()
         self.ghosts_to_spawn = []
         self._schedule_ghosts()
+        for ghost in self.ghosts:
+            ghost.move_to_start_pos()
 
     def check_game_state(self):
         if self.player.sprite.life == 0:
@@ -254,18 +261,36 @@ class World:
                         ghost_grid = (ghost.rect.y // CHAR_SIZE, ghost.rect.x // CHAR_SIZE)
                         pac_grid = (pac_position[1] // CHAR_SIZE, pac_position[0] // CHAR_SIZE)
                         path = []
-                        if self.ghost_pathfinding == "a_star":
-                            path = a_star_search(MAP, ghost_grid, pac_grid)
-                        elif self.ghost_pathfinding == "bfs":
-                            path = bfs_search(MAP, ghost_grid, pac_grid)
-                        elif self.ghost_pathfinding == "q_learning":
-                            path = q_learning_search(MAP, ghost_grid, pac_grid, episodes=100)
-                        elif self.ghost_pathfinding == "beam":
-                            path = beam_search(MAP, ghost_grid, pac_grid, beam_width=3)
-                        elif self.ghost_pathfinding == "backtrack_ac3":
-                            path = backtrack_with_ac3(MAP, ghost_grid, pac_grid, max_steps=50)
-                        elif self.ghost_pathfinding == "sim_anneal":
-                            path = simulated_annealing_search(MAP, ghost_grid, pac_grid, max_steps=100)
+                        # --- Áp dụng thuật toán Partially Observable với belief state cho ghost màu cam ---
+                        if not hasattr(self, "pacman_belief"):
+                            self.pacman_belief = [pac_grid]
+                        # Nếu Pac-Man trong tầm nhìn, cập nhật belief
+                        if abs(ghost_grid[0] - pac_grid[0]) + abs(ghost_grid[1] - pac_grid[1]) <= 5:
+                            self.pacman_belief = [pac_grid]
+                        # Nếu là ghost màu cam, dùng thuật toán belief
+                        ghost_color_name = ""
+                        if hasattr(ghost, "color"):
+                            if isinstance(ghost.color, str):
+                                ghost_color_name = ghost.color.lower()
+                            elif isinstance(ghost.color, tuple):
+                                # So sánh tuple với màu cam (255, 165, 0)
+                                if ghost.color == (255, 165, 0):
+                                    ghost_color_name = "orange"
+                        if ghost_color_name == "orange":
+                            path = partially_observable_search(MAP, ghost_grid, pac_grid, vision_radius=5, belief_state=self.pacman_belief)
+                        else:
+                            if self.ghost_pathfinding == "a_star":
+                                path = a_star_search(MAP, ghost_grid, pac_grid)
+                            elif self.ghost_pathfinding == "bfs":
+                                path = bfs_search(MAP, ghost_grid, pac_grid)
+                            elif self.ghost_pathfinding == "q_learning":
+                                path = q_learning_search(MAP, ghost_grid, pac_grid, episodes=100)
+                            elif self.ghost_pathfinding == "beam":
+                                path = beam_search(MAP, ghost_grid, pac_grid, beam_width=3)
+                            elif self.ghost_pathfinding == "backtrack_ac3":
+                                path = backtrack_with_ac3(MAP, ghost_grid, pac_grid, max_steps=50)
+                            elif self.ghost_pathfinding == "sim_anneal":
+                                path = simulated_annealing_search(MAP, ghost_grid, pac_grid, max_steps=100)
                         if path and len(path) > 1:
                             next_cell = path[1]
                             dx = next_cell[1] - ghost_grid[1]

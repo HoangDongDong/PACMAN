@@ -1,7 +1,7 @@
 from collections import deque
 import heapq
 import numpy as np
-
+import random
 MAP = [
     ['1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1'],
     ['1',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ','1'],
@@ -25,6 +25,9 @@ MAP = [
     ['1',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ','1'],
     ['1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1']
 ]
+
+
+
 BOARD_RATIO = (len(MAP[0]), len(MAP))
 CHAR_SIZE = 32
 WIDTH, HEIGHT = (BOARD_RATIO[0] * CHAR_SIZE, BOARD_RATIO[1] * CHAR_SIZE)
@@ -312,3 +315,38 @@ def backtrack_with_ac3(grid, start, destination, max_steps=500):
                 break
         return path
     return []
+
+def partially_observable_search(grid, start, destination, vision_radius=5, belief_state=None):
+    """
+    Tìm đường đi với giả định ghost chỉ nhìn thấy Pac-Man trong bán kính vision_radius.
+    Nếu Pac-Man ngoài tầm nhìn, ghost sẽ sử dụng belief state (tập hợp các vị trí có thể của Pac-Man).
+    Nếu không có belief_state truyền vào, mặc định là vị trí Pac-Man hiện tại.
+    """
+    rows, cols = len(grid), len(grid[0])
+    # Nếu Pac-Man trong tầm nhìn
+    if abs(start[0] - destination[0]) + abs(start[1] - destination[1]) <= vision_radius:
+        # Dùng BFS/A* để đuổi theo Pac-Man
+        return a_star_search(grid, start, destination)
+    else:
+        # Pac-Man ngoài tầm nhìn: ghost sử dụng belief state
+        if belief_state is None or not belief_state:
+            # Nếu không có thông tin, giả sử Pac-Man ở vị trí cũ nhất biết được
+            belief_state = [destination]
+        # Chọn vị trí gần nhất trong belief state để đuổi theo
+        min_dist = float('inf')
+        target = None
+        for pos in belief_state:
+            d = abs(start[0] - pos[0]) + abs(start[1] - pos[1])
+            if d < min_dist:
+                min_dist = d
+                target = pos
+        if target is not None:
+            return a_star_search(grid, start, target)
+        # Nếu không có vị trí nào hợp lệ, đi random
+        directions = [(-1,0),(1,0),(0,-1),(0,1)]
+        random.shuffle(directions)
+        for dr, dc in directions:
+            nr, nc = start[0] + dr, start[1] + dc
+            if 0 <= nr < rows and 0 <= nc < cols and grid[nr][nc] != '1':
+                return [start, (nr, nc)]
+        return [start]  # Không đi được đâu cả
