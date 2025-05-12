@@ -20,7 +20,6 @@ Một phiên bản game Pacman đơn giản được viết bằng Python. Dự 
 ## Clone repo:
 ```bash
 git clone https://github.com/HoangDongDong/PACMAN.git
-cd pacman-game
 
 ## 🌱 Hướng phát triển tương lai
 Thêm nhiều bản đồ (level)
